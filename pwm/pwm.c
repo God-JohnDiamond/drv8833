@@ -75,8 +75,8 @@ int main(int argc, char *argv[])
 {
 	int pwm_fd;
 	struct fh_pwm_chip_data chip_data = {0};
+	int i;
 	
-	chip_data.id = 3;
 
 	pwm_fd = open("/dev/fh_pwm", O_RDWR | O_SYNC);
 	if(pwm_fd == -1)
@@ -84,40 +84,53 @@ int main(int argc, char *argv[])
 		printf("open failed\n");
 		return -1;
 	}
-	if(-1 == ioctl(pwm_fd, GET_PWM_DUTY_CYCLE, &chip_data))
+	while(1)
 	{
-		printf("ioctl0 failed\n");
-		return -1;
+		for(i = 0; i < 8; i++){
+		chip_data.id = i;
+		if(-1 == ioctl(pwm_fd, GET_PWM_DUTY_CYCLE, &chip_data))
+		{
+			printf("ioctl0 failed\n");
+			return -1;
+		}
+		chip_data.config.period_ns = 20000;
+		chip_data.config.duty_ns = 10000;
+		chip_data.config.pulses = 5;
+		chip_data.config.stop = FH_PWM_STOPLVL_HIGH;
+		//chip_data.config.delay_ns = 100;
+		//chip_data.config.phase_ns = 100;
+		//chip_data.config.percent = 50;
+
+		if(-1 == ioctl(pwm_fd, SET_PWM_DUTY_CYCLE, &chip_data))
+		{
+			printf("ioctl1 failed\n");
+			return -1;		
+		}
+
+		if(-1 == ioctl(pwm_fd, ENABLE_MUL_PWM, 0x0))
+		{
+			printf("ioctl1 failed\n");
+			return -1;		
+		}
+	
+		if(-1 == ioctl(pwm_fd, ENABLE_PWM, &chip_data))
+		{
+			printf("ioctl2 failed\n");
+			return -1;
+		}
+		usleep(200);
+
+		if(-1 == ioctl(pwm_fd, DISABLE_PWM, &chip_data))
+		{
+			printf("ioctl3 failed\n");
+			return -1;
+		}
+		usleep(200);
+		printf("id = %d  done_cnt=%d   total_cnt=%d   busy=%d \n", chip_data.id, chip_data.status.done_cnt, chip_data.status.total_cnt, chip_data.status.busy);
+		}
+		sleep(2);
 	}
-
-	chip_data.config.period_ns = 20000;
-	chip_data.config.duty_ns = 10000;
-	chip_data.config.pulses = 5;
-	chip_data.config.stop = FH_PWM_STOPLVL_HIGH;
-	//chip_data.config.delay_ns = 10000;
-	chip_data.config.phase_ns = 10000;
-	//chip_data.config.percent = 50;
-
-	if(-1 == ioctl(pwm_fd, SET_PWM_DUTY_CYCLE, &chip_data))
-	{
-		printf("ioctl1 failed\n");
-		return -1;		
-	}
-
-	if(-1 == ioctl(pwm_fd, ENABLE_PWM, &chip_data))
-	{
-		printf("ioctl2 failed\n");
-		return -1;
-	}
-	usleep(150);
-
-	if(-1 == ioctl(pwm_fd, DISABLE_PWM, &chip_data))
-	{
-		printf("ioctl3 failed\n");
-		return -1;
-	}
-
-	printf("done_cnt=%d   total_cnt=%d   busy=%d \n", chip_data.status.done_cnt, chip_data.status.total_cnt, chip_data.status.busy);
+	
 
 	close(pwm_fd);
 
