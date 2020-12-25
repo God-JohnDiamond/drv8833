@@ -2,7 +2,7 @@
  * @Author: John Diamond
  * @Date: 2020-12-24 12:44:15
  * @LastEditors: John Diamond
- * @LastEditTime: 2020-12-24 12:47:54
+ * @LastEditTime: 2020-12-24 15:40:52
  * @FilePath: /code/pwm/drv8833.h
  */
 #ifndef DRV8833_H_
@@ -15,6 +15,7 @@
 #include <unistd.h>
 #include <stdio.h>
 #include <sys/wait.h>
+#include <stdlib.h>
 
 #define PWM_IOCTL_MAGIC				'p'
 #define ENABLE_PWM					_IOWR(PWM_IOCTL_MAGIC, 0, unsigned int)
@@ -30,6 +31,12 @@
 #define DISABLE_FINSHALL_INTR		_IOWR(PWM_IOCTL_MAGIC, 9, unsigned int)
 #define DISABLE_FINSHONCE_INTR		_IOWR(PWM_IOCTL_MAGIC, 10, unsigned int)
 #define WAIT_PWM_FINSHALL			_IOWR(PWM_IOCTL_MAGIC, 12, unsigned int)
+
+
+#define PERIOD_NS	3000000			// 10ms
+#define DUTY_NS		(PERIOD_NS / 2)	// duty 50% 5ms
+//#define PULSES	100				// pwm output num  for debug
+
 
 struct fh_pwm_config
 {
@@ -85,5 +92,7 @@ int  init_fh_pwm(void);
 void exit_fh_pwm(int fd);
 void ZoomForward(int pwm_fd, int n);
 void ZoomReverse(int pwm_fd, int n);
+void FocusForward(int pwm_fd, int n);
+void FocusReverse(int pwm_fd, int n);
 
 #endif
