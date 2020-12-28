@@ -2,7 +2,7 @@
  * @Author: John Diamond
  * @Date: 2020-12-24 12:44:02
  * @LastEditors: John Diamond
- * @LastEditTime: 2020-12-28 16:20:24
+ * @LastEditTime: 2020-12-28 16:23:33
  * @FilePath: /pwm/drv8833.c
  */
 
@@ -76,13 +76,13 @@ int init_fh_pwm(struct datafile *localdata, unsigned int *focus_config)
 	return pwm_fd;
 }
 
-int exit_fh_pwm(int fd, struct datafile *serverdata)
+int exit_fh_pwm(int fd, struct datafile *localdata)
 {
 	FILE *data_fd;
 
 	// write server data to local config file
 	data_fd = fopen("zoom_config", "wb");
-	fwrite(serverdata, 1, sizeof(struct datafile), data_fd);
+	fwrite(localdata, 1, sizeof(struct datafile), data_fd);
 	fclose(data_fd);
 	close(fd);
 
