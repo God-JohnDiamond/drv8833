@@ -2,7 +2,7 @@
  * @Author: John Diamond
  * @Date: 2020-12-24 12:44:02
  * @LastEditors: John Diamond
- * @LastEditTime: 2020-12-28 16:09:26
+ * @LastEditTime: 2020-12-28 16:20:24
  * @FilePath: /pwm/drv8833.c
  */
 
@@ -171,9 +171,9 @@ void ZoomForward(int pwm_fd, int n)
 		{
 			printf("ioctl get param failed\n");
 		}
-		chip_data.config.period_ns = PERIOD_NS;	// 10ms
-		chip_data.config.duty_ns = DUTY_NS;		// duty 50% 5ms
-		chip_data.config.pulses = n;			// n * 2 times * 20us
+		chip_data.config.period_ns = PERIOD_NS;	// 
+		chip_data.config.duty_ns = DUTY_NS;		// duty 50% 
+		chip_data.config.pulses = n;			// n times
 		chip_data.config.stop = FH_PWM_STOPLVL_LOW;
 
 		switch (i)								// set pwm enable time

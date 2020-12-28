@@ -2,7 +2,7 @@
  * @Author: John Diamond
  * @Date: 2020-12-24 12:44:15
  * @LastEditors: John Diamond
- * @LastEditTime: 2020-12-28 16:03:23
+ * @LastEditTime: 2020-12-28 16:21:44
  * @FilePath: /pwm/drv8833.h
  */
 #ifndef DRV8833_H_
@@ -97,7 +97,7 @@ struct fh_pwm_chip_data
 
 
 int init_fh_pwm(struct datafile *localdata, unsigned int *focus_config);
-int exit_fh_pwm(int fd, struct datafile *data);
+int exit_fh_pwm(int fd, struct datafile *localdata);
 unsigned int SetZoom(int pwm_fd, struct datafile *localdata, struct datafile *serverdata, unsigned int *focus_config);
 unsigned int SetFocus(int pwm_fd, int local, int server);
 void ZoomForward(int pwm_fd, int n);
