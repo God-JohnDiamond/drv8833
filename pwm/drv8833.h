@@ -2,8 +2,8 @@
  * @Author: John Diamond
  * @Date: 2020-12-24 12:44:15
  * @LastEditors: John Diamond
- * @LastEditTime: 2020-12-24 15:40:52
- * @FilePath: /code/pwm/drv8833.h
+ * @LastEditTime: 2020-12-28 16:03:23
+ * @FilePath: /pwm/drv8833.h
  */
 #ifndef DRV8833_H_
 #define DRV8833_H_
@@ -16,6 +16,7 @@
 #include <stdio.h>
 #include <sys/wait.h>
 #include <stdlib.h>
+#include <string.h>
 
 #define PWM_IOCTL_MAGIC				'p'
 #define ENABLE_PWM					_IOWR(PWM_IOCTL_MAGIC, 0, unsigned int)
@@ -36,6 +37,13 @@
 #define PERIOD_NS	3000000			// 10ms
 #define DUTY_NS		(PERIOD_NS / 2)	// duty 50% 5ms
 //#define PULSES	100				// pwm output num  for debug
+
+struct datafile
+{
+	unsigned int zoom;
+	unsigned int focus;
+};
+
 
 
 struct fh_pwm_config
@@ -88,8 +96,10 @@ struct fh_pwm_chip_data
 };
 
 
-int  init_fh_pwm(void);
-void exit_fh_pwm(int fd);
+int init_fh_pwm(struct datafile *localdata, unsigned int *focus_config);
+int exit_fh_pwm(int fd, struct datafile *data);
+unsigned int SetZoom(int pwm_fd, struct datafile *localdata, struct datafile *serverdata, unsigned int *focus_config);
+unsigned int SetFocus(int pwm_fd, int local, int server);
 void ZoomForward(int pwm_fd, int n);
 void ZoomReverse(int pwm_fd, int n);
 void FocusForward(int pwm_fd, int n);
