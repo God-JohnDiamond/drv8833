@@ -97,9 +97,9 @@ struct fh_pwm_chip_data
 
 
 int init_fh_pwm(struct datafile *localdata, unsigned int *focus_config);
-int exit_fh_pwm(int fd, struct datafile *localdata);
+int exit_fh_pwm(int fd, struct datafile *localdata, unsigned int *focus_pwm);
 unsigned int SetZoom(int pwm_fd, struct datafile *localdata, struct datafile *serverdata, unsigned int *focus_config);
-unsigned int SetFocus(int pwm_fd, int local, int server);
+unsigned int SetFocus(int pwm_fd, struct datafile *localdata, struct datafile *server, unsigned int *focus_config);
 void ZoomForward(int pwm_fd, int n);
 void ZoomReverse(int pwm_fd, int n);
 void FocusForward(int pwm_fd, int n);

@@ -23,10 +23,11 @@ int init_fh_pwm(struct datafile *localdata, unsigned int *focus_config)
 	
 	if(-1 == (access("zoom_config", F_OK))){				// local config file no exit
 		printf("there is no zoom_config file\n");
-		ZoomForward(pwm_fd, 520);
-		FocusReverse(pwm_fd, 520);
+		ZoomForward(pwm_fd, 520);							// set two motor to 0
+		FocusForward(pwm_fd, 520);
 		localdata->zoom = 1;
 		localdata->focus = 0;
+		FocusReverse(pwm_fd, localdata->focus);
 		data_fd = fopen("zoom_config", "wb");
 		if(NULL == data_fd){
 			printf("open local zoom file failed\n");
@@ -48,7 +49,8 @@ int init_fh_pwm(struct datafile *localdata, unsigned int *focus_config)
 	FILE *focus_fd;
 	int j;
 
-	unsigned int focus_pwm[8] = {20, 40, 70, 110, 160, 220, 340, 520};
+	//unsigned int focus_pwm[8] = {14, 32, 65, 102, 145, 227, 350, 510};
+	unsigned int focus_pwm[8] = {0, 35, 65, 102, 148, 222, 355, 497};
 	if(-1 == (access("focus_config", F_OK))){				// local config file no exit
 		printf("there is no focus_config file\n");
 		
@@ -68,6 +70,7 @@ int init_fh_pwm(struct datafile *localdata, unsigned int *focus_config)
 			printf("open focus_config file failed\n");
 		}
 		fread(focus_config, 1, sizeof(focus_pwm), focus_fd);
+		printf("focus_pwm byte %d", sizeof(focus_pwm));
 	}
 
 	fclose(focus_fd);
@@ -76,14 +79,20 @@ int init_fh_pwm(struct datafile *localdata, unsigned int *focus_config)
 	return pwm_fd;
 }
 
-int exit_fh_pwm(int fd, struct datafile *localdata)
+int exit_fh_pwm(int fd, struct datafile *localdata, unsigned int *focus_pwm)
 {
 	FILE *data_fd;
+	FILE *focus_fd;
 
 	// write server data to local config file
 	data_fd = fopen("zoom_config", "wb");
 	fwrite(localdata, 1, sizeof(struct datafile), data_fd);
 	fclose(data_fd);
+
+	focus_fd = fopen("focus_config", "wb");
+	fwrite(focus_pwm, 8, sizeof(focus_pwm), focus_fd);				//数组作为函数参数传进来 便与指针一样 不能获取到数组的长度
+	fclose(focus_fd);
+
 	close(fd);
 
 	return 0;
@@ -91,36 +100,26 @@ int exit_fh_pwm(int fd, struct datafile *localdata)
 
 unsigned int SetZoom(int pwm_fd, struct datafile *localdata, struct datafile *serverdata, unsigned int *focus_config)
 {
-	int zoom_pwm_num = 74;											// 74.2=520/7
-	int focus_pwm_num = 1;
+	unsigned int zoom_pwm_fac = 74;											// 74.2=520/7
+	unsigned int focus_pwm_num = 1;
+	unsigned int zoom_num = 0;
+	unsigned int level_8_pwm_num = 35;
 	
 	if(localdata->zoom == serverdata->zoom){
 		printf("zoom config no update, do nothing\n");
 		return 0;
 	}
 
-	if(localdata->zoom < serverdata->zoom){							// config increase
-		ZoomReverse(pwm_fd, ((serverdata->zoom - localdata->zoom) * zoom_pwm_num));	// zoom 0-server.zoom
-		FocusReverse(pwm_fd, localdata->focus);										// foucus reset
-
-		switch (serverdata->zoom){
-			//case 1: localdata->focus = focus_config[serverdata->zoom - 1]; break;
-			case 2: localdata->focus = focus_config[serverdata->zoom - 1]; break;
-			case 3: localdata->focus = focus_config[serverdata->zoom - 1]; break;
-			case 4: localdata->focus = focus_config[serverdata->zoom - 1]; break;
-			case 5: localdata->focus = focus_config[serverdata->zoom - 1]; break;
-			case 6: localdata->focus = focus_config[serverdata->zoom - 1]; break;
-			case 7: localdata->focus = focus_config[serverdata->zoom - 1]; break;
-			case 8: localdata->focus = focus_config[serverdata->zoom - 1]; break;
-			default: localdata->focus = 0; break;
+	if(localdata->zoom < serverdata->zoom){											// config increase
+		if(serverdata->zoom == 8){
+			zoom_num = (serverdata->zoom - localdata->zoom - 1) * zoom_pwm_fac + level_8_pwm_num;	// zoom local -> server.zoom,(-1 ... +65 for without level 8)
 		}
-		FocusForward(pwm_fd, localdata->focus * focus_pwm_num);						// focus 
-		localdata->zoom = serverdata->zoom;
-		return 0;
-	}
-	else if(localdata->zoom > serverdata->zoom){					// config dec
-		ZoomForward(pwm_fd, ((localdata->zoom - serverdata->zoom) * zoom_pwm_num));	// zoom forward 
-		FocusReverse(pwm_fd, localdata->focus);										// foucus reset
+		else{
+			zoom_num = (serverdata->zoom - localdata->zoom) * zoom_pwm_fac;
+		}
+
+		ZoomReverse(pwm_fd, zoom_num);											// zoom level 1 --> 8
+		FocusForward(pwm_fd, localdata->focus);									// foucus reset
 
 		switch (serverdata->zoom){
 			case 1: localdata->focus = focus_config[serverdata->zoom - 1]; break;
@@ -130,10 +129,38 @@ unsigned int SetZoom(int pwm_fd, struct datafile *localdata, struct datafile *se
 			case 5: localdata->focus = focus_config[serverdata->zoom - 1]; break;
 			case 6: localdata->focus = focus_config[serverdata->zoom - 1]; break;
 			case 7: localdata->focus = focus_config[serverdata->zoom - 1]; break;
-			//case 8: localdata->focus = focus_config[serverdata->zoom - 1]; break;
+			case 8: localdata->focus = focus_config[serverdata->zoom - 1]; break;
 			default: localdata->focus = 0; break;
 		}
-		FocusForward(pwm_fd, localdata->focus * focus_pwm_num);						// foucus forward
+		//printf("focus_config0=%d\n", localdata->focus);
+
+		FocusReverse(pwm_fd, localdata->focus);										// focus 
+		localdata->zoom = serverdata->zoom;
+		return 0;
+	}
+	else if(localdata->zoom > serverdata->zoom){									// config dec
+		if(localdata->zoom == 8){
+			zoom_num = (localdata->zoom - serverdata->zoom - 1) * zoom_pwm_fac + level_8_pwm_num;	// zoom serverlocal -> local.zoom,(-1 ... +65 for without level 8)
+		}
+		else{
+			zoom_num = (localdata->zoom - serverdata->zoom) * zoom_pwm_fac;
+		}
+		ZoomForward(pwm_fd, zoom_num);												// zoom level 8 --> 1
+		FocusForward(pwm_fd, localdata->focus);										// foucus reset
+
+		switch (serverdata->zoom){
+			case 1: localdata->focus = focus_config[serverdata->zoom - 1]; break;
+			case 2: localdata->focus = focus_config[serverdata->zoom - 1]; break;
+			case 3: localdata->focus = focus_config[serverdata->zoom - 1]; break;
+			case 4: localdata->focus = focus_config[serverdata->zoom - 1]; break;
+			case 5: localdata->focus = focus_config[serverdata->zoom - 1]; break;
+			case 6: localdata->focus = focus_config[serverdata->zoom - 1]; break;
+			case 7: localdata->focus = focus_config[serverdata->zoom - 1]; break;
+			case 8: localdata->focus = focus_config[serverdata->zoom - 1]; break;
+			default: localdata->focus = 0; break;
+		}
+		localdata->focus += 3;														// 8-->1 gain
+		FocusReverse(pwm_fd, localdata->focus);										// foucus forward
 		localdata->zoom = serverdata->zoom;
 		return 0;
 	}
@@ -141,19 +168,24 @@ unsigned int SetZoom(int pwm_fd, struct datafile *localdata, struct datafile *se
 	return 0;
 }
 
-unsigned int SetFocus(int pwm_fd, int local, int server)
+unsigned int SetFocus(int pwm_fd, struct datafile *localdata, struct datafile *server, unsigned int *focus_config)
 {
 	int focus_pwm_num = 1;
-	if(server == 0){
+	if(server->focus == 0){
 		printf("focus config no update, do nothing\n");
 		return 0;
 	}
-	else if(server > 0){
-		FocusForward(pwm_fd, (server * focus_pwm_num));				// focus forward
+	else if(server->focus > 0){
+		FocusReverse(pwm_fd, server->focus);				// focus forward
+		localdata->focus += server->focus;
+		focus_config[server->zoom - 1] = localdata->focus;
 		return 0;
 	}
-	else if(server < 0){
-		FocusReverse(pwm_fd, ((-server)* focus_pwm_num));			// focus back
+	else if(server->focus < 0){
+		FocusForward(pwm_fd, (-server->focus));			// focus back
+		if(localdata->focus != 0)
+			localdata->focus += server->focus;
+		focus_config[server->zoom - 1] = localdata->focus;
 		return 0;
 	}
 	
