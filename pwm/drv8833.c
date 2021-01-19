@@ -217,10 +217,10 @@ void ZoomForward(int pwm_fd, int n)
 			chip_data.config.delay_ns = 0;
 			break;
 		case 2:
-			chip_data.config.delay_ns = (PERIOD_NS / 4 * 3);
+			chip_data.config.delay_ns = (PERIOD_NS / 4 * 1);
 			break;
 		case 3:
-			chip_data.config.delay_ns = (PERIOD_NS / 4 * 1);
+			chip_data.config.delay_ns = (PERIOD_NS / 4 * 3);
 			break;
 		}
 
@@ -246,6 +246,10 @@ void ZoomForward(int pwm_fd, int n)
 		if(-1 == ioctl(pwm_fd, DISABLE_PWM, &chip_data))
 		{
 			printf("ioctl disable pwm%d failed\n", i);
+		}
+		if(-1 == ioctl(pwm_fd, GET_PWM_DUTY_CYCLE, &chip_data))
+		{
+			printf("ioctl get failed\n");
 		}
 		printf("id %d  done_cnt %d  total_cnt %d\n", chip_data.id, chip_data.status.done_cnt, chip_data.status.total_cnt);
 	}
@@ -277,10 +281,10 @@ void ZoomReverse(int pwm_fd, int n)
 			chip_data.config.delay_ns = 0;
 			break;
 		case 2:
-			chip_data.config.delay_ns = (PERIOD_NS / 4 * 1);
+			chip_data.config.delay_ns = (PERIOD_NS / 4 * 3);
 			break;
 		case 3:
-			chip_data.config.delay_ns = (PERIOD_NS / 4 * 3);
+			chip_data.config.delay_ns = (PERIOD_NS / 4 * 1);
 			break;
 		}
 
@@ -306,6 +310,10 @@ void ZoomReverse(int pwm_fd, int n)
 		if(-1 == ioctl(pwm_fd, DISABLE_PWM, &chip_data))
 		{
 			printf("ioctl disable pwm%d failed\n", i);
+		}
+		if(-1 == ioctl(pwm_fd, GET_PWM_DUTY_CYCLE, &chip_data))
+		{
+			printf("ioctl get failed\n");
 		}
 		printf("id %d  done_cnt %d  total_cnt %d\n", chip_data.id, chip_data.status.done_cnt, chip_data.status.total_cnt);
 	}
@@ -338,10 +346,10 @@ void FocusForward(int pwm_fd, int n)
 			chip_data.config.delay_ns = 0;
 			break;
 		case 6:
-			chip_data.config.delay_ns = (PERIOD_NS / 4 * 3);
+			chip_data.config.delay_ns = (PERIOD_NS / 4 * 1);
 			break;
 		case 7:
-			chip_data.config.delay_ns = (PERIOD_NS / 4 * 1);
+			chip_data.config.delay_ns = (PERIOD_NS / 4 * 3);
 			break;
 		}
 
@@ -367,6 +375,10 @@ void FocusForward(int pwm_fd, int n)
 		if(-1 == ioctl(pwm_fd, DISABLE_PWM, &chip_data))
 		{
 			printf("ioctl disable pwm%d failed\n", i);
+		}
+		if(-1 == ioctl(pwm_fd, GET_PWM_DUTY_CYCLE, &chip_data))
+		{
+			printf("ioctl get failed\n");
 		}
 		printf("id %d  done_cnt %d  total_cnt %d\n", chip_data.id, chip_data.status.done_cnt, chip_data.status.total_cnt);
 	}
@@ -398,10 +410,10 @@ void FocusReverse(int pwm_fd, int n)
 			chip_data.config.delay_ns = 0;
 			break;
 		case 6:
-			chip_data.config.delay_ns = (PERIOD_NS / 4 * 1);
+			chip_data.config.delay_ns = (PERIOD_NS / 4 * 3);
 			break;
 		case 7:
-			chip_data.config.delay_ns = (PERIOD_NS / 4 * 3);
+			chip_data.config.delay_ns = (PERIOD_NS / 4 * 1);
 			break;
 		}
 
@@ -427,6 +439,10 @@ void FocusReverse(int pwm_fd, int n)
 		if(-1 == ioctl(pwm_fd, DISABLE_PWM, &chip_data))
 		{
 			printf("ioctl disable pwm%d failed\n", i);
+		}
+		if(-1 == ioctl(pwm_fd, GET_PWM_DUTY_CYCLE, &chip_data))
+		{
+			printf("ioctl get failed\n");
 		}
 		printf("id %d  done_cnt %d  total_cnt %d\n", chip_data.id, chip_data.status.done_cnt, chip_data.status.total_cnt);
 	}
